@@ -5,6 +5,8 @@ import dudeImg from './assets/Amelia_run_48x48.png';
 import platformImg from './assets/platform.png';
 import starImg from './assets/star.png';
 
+import Camera from './camera';
+
 const SKY = 'sky';
 const BOMB = 'bomb';
 const GROUND = 'ground';
@@ -176,7 +178,7 @@ const config = {
     parent: 'phaser-example',
     width: 800,
     height: 600,
-    scene: MyGame,
+    scene: Camera,
     physics: {
         default: 'arcade',
         arcade: {
