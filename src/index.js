@@ -6,6 +6,7 @@ import platformImg from './assets/platform.png';
 import starImg from './assets/star.png';
 
 import Camera from './camera';
+import Pokemon from './pokemon';
 
 const SKY = 'sky';
 const BOMB = 'bomb';
@@ -178,11 +179,11 @@ const config = {
     parent: 'phaser-example',
     width: 800,
     height: 600,
-    scene: Camera,
+    scene: Pokemon,
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 300 },
+            gravity: { y: 0 },
             debug: false,
         },
     },
