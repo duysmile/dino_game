@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import AtlasImg from './assets/atlas.png';
 import Atlas from './assets/atlas.json';
 import Typewriter from './typewriter';
+import BagScene from './bag';
+
+import ScalePlugin from 'phaser3-rex-plugins/plugins/scale-plugin.js';
 
 const PLAYER = "player";
 class MyGame extends Phaser.Scene {
@@ -102,13 +105,20 @@ const config = {
     parent: 'phaser-example',
     width: 800,
     height: 600,
-    scene: Typewriter,
+    scene: BagScene,
     physics: {
         default: 'arcade',
         arcade: {
             gravity: { y: 0 },
             debug: false,
         },
+    },
+    plugins: {
+        global: [{
+            key: 'rexScale',
+            plugin: ScalePlugin,
+            start: true
+        }]
     },
 };
 
