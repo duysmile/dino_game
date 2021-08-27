@@ -6,6 +6,8 @@ import Map from './assets/test-map.json';
 import AtlasImg from './assets/atlas.png';
 import Atlas from './assets/atlas.json';
 
+import Star from './assets/star.png';
+
 let cursors;
 
 export default class Pokemon extends Phaser.Scene {
@@ -17,6 +19,7 @@ export default class Pokemon extends Phaser.Scene {
     preload() {
         this.load.image("tiles", MapImg);
         this.load.tilemapTiledJSON("map", Map);
+        this.load.image("star", Star);
 
         // An atlas is a way to pack multiple images together into one texture. I'm using it to load all
         // the player animations (walking left, walking right, etc.) in one image. For more info see:
@@ -39,17 +42,23 @@ export default class Pokemon extends Phaser.Scene {
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
 
+        const key = map.createFromObjects("item", { key: "star" });
+
         // worldLayer.setCollisionBetween(12, 44);
         worldLayer.setCollisionByProperty({ collides: true });
 
         aboveLayer.setDepth(10);
 
         const spawnPoint = map.findObject("Objects", obj => obj.name === "Spawn Point");
+        const keyItem = map.findObject("item", obj => obj.name === "key");
+        console.log(keyItem);
 
         this.player = this.physics.add
             .sprite(spawnPoint.x, spawnPoint.y, "atlas", "misa-front")
             .setSize(30, 40)
             .setOffset(0, 24);
+
+        this.physics.add.collider(this.player, key);
 
         this.physics.add.collider(this.player, worldLayer);
 
@@ -113,8 +122,12 @@ export default class Pokemon extends Phaser.Scene {
     }
 
     update(time, delta) {
-        const speed = 175;
+        let speed = 175;
         const prevVelocity = this.player.body.velocity.clone();
+
+        if (cursors.space.isDown) {
+            speed = 350;
+        }
 
         // Stop any previous movement from the last frame
         this.player.body.setVelocity(0);

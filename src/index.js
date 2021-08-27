@@ -3,8 +3,10 @@ import AtlasImg from './assets/atlas.png';
 import Atlas from './assets/atlas.json';
 import Typewriter from './typewriter';
 import BagScene from './bag';
+import Pokemon from './pokemon';
 
 import ScalePlugin from 'phaser3-rex-plugins/plugins/scale-plugin.js';
+import Jump from './jump';
 
 const PLAYER = "player";
 class MyGame extends Phaser.Scene {
@@ -28,32 +30,28 @@ class MyGame extends Phaser.Scene {
 
         const anims = this.anims;
         anims.create({
-            key: "left-walk",
-            frames: anims.generateFrameNames(PLAYER, {prefix: "player-left-walk.", start: 0, end: 3, zeroPad: 3}),
-            // frames: anims.generateFrameNames(PLAYER, {frames: [6, 7, 10]}),
+            key: "misa-left-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-left-walk.", start: 0, end: 3, zeroPad: 3 }),
             frameRate: 10,
-            repeat: -1,
+            repeat: -1
         });
         anims.create({
-            key: "right-walk",
-            frames: anims.generateFrameNames(PLAYER, {prefix: "player-right-walk.", start: 0, end: 3, zeroPad: 3}),
-            // frames: anims.generateFrameNames(PLAYER, {frames: [5, 8, 11]}),
+            key: "misa-right-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-right-walk.", start: 0, end: 3, zeroPad: 3 }),
             frameRate: 10,
-            repeat: -1,
+            repeat: -1
         });
         anims.create({
-            key: "front-walk",
-            frames: anims.generateFrameNames(PLAYER, {prefix: "player-front-walk.", start: 0, end: 3, zeroPad: 3}),
-            // frames: anims.generateFrameNames(PLAYER, {frames: [0, 1, 2]}),
+            key: "misa-front-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-front-walk.", start: 0, end: 3, zeroPad: 3 }),
             frameRate: 10,
-            repeat: -1,
+            repeat: -1
         });
         anims.create({
-            key: "back-walk",
-            frames: anims.generateFrameNames(PLAYER, {prefix: "player-back-walk.", start: 0, end: 3, zeroPad: 3}),
-            // frames: anims.generateFrameNames(PLAYER, {frames: [3, 4, 9]}),
+            key: "misa-back-walk",
+            frames: anims.generateFrameNames("atlas", { prefix: "misa-back-walk.", start: 0, end: 3, zeroPad: 3 }),
             frameRate: 10,
-            repeat: -1,
+            repeat: -1
         });
 
     }
@@ -105,7 +103,7 @@ const config = {
     parent: 'phaser-example',
     width: 800,
     height: 600,
-    scene: BagScene,
+    scene: Jump,
     physics: {
         default: 'arcade',
         arcade: {
