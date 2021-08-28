@@ -2,6 +2,11 @@ import Phaser from "phaser";
 
 import JumpImg from "./assets/jump.png";
 import JumpJson from "./assets/jump.json";
+import PlayerImg from "./assets/player.png";
+import SpikeImg from "./assets/spike.png";
+
+import Player from "./player";
+import MouseTileMarker from "./mouse-tile-marker";
 
 export default class Jump extends Phaser.Scene {
     constructor() {
@@ -9,11 +14,21 @@ export default class Jump extends Phaser.Scene {
     }
 
     preload() {
+        this.load.image("spike", SpikeImg);
         this.load.image("tiles", JumpImg);
         this.load.tilemapTiledJSON("map", JumpJson);
+
+        this.load.spritesheet("player", PlayerImg, {
+            frameWidth: 32,
+            frameHeight: 32,
+            margin: 1,
+            spacing: 2,
+        });
     }
 
     create() {
+        this.isPlayerDead = false;
+
         const map = this.make.tilemap({ key: "map" });
         const tiles = map.addTilesetImage("0x72-industrial-tileset-32px-extruded", "tiles");
 
@@ -21,30 +36,51 @@ export default class Jump extends Phaser.Scene {
         this.groundLayer = map.createLayer("Ground", tiles);
         map.createLayer("Foreground", tiles);
 
-        this.shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+        const spawnPoint = map.findObject("Objects", obj => obj.name == "Spawn Point");
 
-        // Set up the arrows to control the camera
-        const cursors = this.input.keyboard.createCursorKeys();
-        const controlConfig = {
-            camera: this.cameras.main,
-            left: cursors.left,
-            right: cursors.right,
-            up: cursors.up,
-            down: cursors.down,
-            speed: 0.5
-        };
+        this.player = new Player(this, spawnPoint.x, spawnPoint.y);
 
-        this.controls = new Phaser.Cameras.Controls.FixedKeyControl(controlConfig);
-        // Limit the camera to the map size
+        this.groundLayer.setCollisionByProperty({ collides: true });
+        this.physics.world.addCollider(this.player.sprite, this.groundLayer);
+
+        this.spikeGroup = this.physics.add.staticGroup();
+        this.groundLayer.forEachTile(tile => {
+            if (tile.index == 77) {
+                const x = tile.getCenterX();
+                const y = tile.getCenterY();
+
+                const spike = this.spikeGroup.create(x, y, "spike");
+
+                spike.rotation = tile.rotation;
+                if (spike.angle == 0) {
+                    spike.body.setSize(32, 6).setOffset(0, 26);
+                } else if (spike.angle == -90) {
+                    spike.body.setSize(6, 32).setOffset(26, 0);
+                } else if (spike.angle == 90) {
+                    spike.body.setSize(6, 32).setOffset(0, 0);
+                }
+
+                this.groundLayer.removeTileAt(tile.x, tile.y);
+            }
+        });
+
+        this.cameras.main.startFollow(this.player.sprite);
         this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-        this.marker = this.add.graphics();
-        this.marker.lineStyle(5, 0xffffff, 1);
-        this.marker.strokeRect(0, 0, map.tileWidth, map.tileHeight);
-        this.marker.lineStyle(3, 0xff4f78, 1);
-        this.marker.strokeRect(0, 0, map.tileWidth, map.tileHeight);
+        this.shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
-        // Help text that has a "fixed" position on the screen
+        this.marker = new MouseTileMarker(this, map);
+
+        // const graphics = this.add
+        //     .graphics()
+        //     .setAlpha(0.75)
+        //     .setDepth(20);
+        // this.groundLayer.renderDebug(graphics, {
+        //     tileColor: null, // Color of non-colliding tiles
+        //     collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+        //     faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+        // });        // Help text that has a "fixed" position on the screen
+
         this.add.text(
             16,
             16,
@@ -52,31 +88,47 @@ export default class Jump extends Phaser.Scene {
             {
                 font: "18px monospace",
                 fill: "#000000",
-                padding: {x:20, y:10},
+                padding: { x: 20, y: 10 },
                 backgroundColor: "#ffffff",
             },
         ).setScrollFactor(0);
     }
 
     update(time, delta) {
-        this.controls.update(delta);
+        if (this.isPlayerDead) return;
 
-        // Convert the mouse position to world position within the camera
-        const worldPoint = this.input.activePointer.positionToCamera(this.cameras.main);
-
-        // Place the marker in world space, but snap it to the tile grid. If we convert world -> tile and
-        // then tile -> world, we end up with the position of the tile under the pointer
-        const pointerTileXY = this.groundLayer.worldToTileXY(worldPoint.x, worldPoint.y);
-        const snappedWorldPoint = this.groundLayer.tileToWorldXY(pointerTileXY.x, pointerTileXY.y);
-        this.marker.setPosition(snappedWorldPoint.x, snappedWorldPoint.y);
+        this.player.update();
+        this.marker.update();
 
         // Draw or erase tiles (only within the groundLayer)
-        if (this.input.manager.activePointer.isDown) {
+        const pointer = this.input.activePointer;
+        const worldPoint = pointer.positionToCamera(this.cameras.main);
+        if (pointer.isDown) {
             if (this.shiftKey.isDown) {
                 this.groundLayer.removeTileAtWorldXY(worldPoint.x, worldPoint.y);
             } else {
-                this.groundLayer.putTileAtWorldXY(353, worldPoint.x, worldPoint.y);
+                const tile = this.groundLayer.putTileAtWorldXY(6, worldPoint.x, worldPoint.y);
+                tile.setCollision(true);
             }
+        }
+
+        if (
+            this.player.sprite.y > this.groundLayer.height ||
+            this.physics.world.overlap(this.player.sprite, this.spikeGroup)
+        ) {
+            this.isPlayerDead = true;
+
+            const cam = this.cameras.main;
+            cam.shake(100, 0.05);
+            cam.fade(250, 0, 0, 0);
+
+            this.player.freeze();
+            this.marker.destroy();
+
+            cam.once("camerafadeoutcomplete", () => {
+                this.player.destroy();
+                this.scene.restart();
+            });
         }
     }
 }
