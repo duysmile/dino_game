@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import DialogPlugin from "./plugins/dialog";
 
 export default class Typewriter extends Phaser.Scene {
     constructor() {
@@ -6,10 +7,14 @@ export default class Typewriter extends Phaser.Scene {
     }
 
     preload() {
-
     }
 
     create() {
+        const dialogModalPlugin = this.plugins.install('dialogModal', DialogPlugin, true);
+        console.log(dialogModalPlugin);
+
+        dialogModalPlugin.init();
+
         this.label = this.add.text(100, 100, '').setWordWrapWidth(500);
         this.typewriteTextWrapped("Xin chào anh em thiện lành, chúng mình hoàn thành đươc một phần nghìn của game rồi nè!");
     }

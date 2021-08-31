@@ -7,6 +7,7 @@ import Pokemon from './pokemon';
 import Jump from './jump';
 
 import ScalePlugin from 'phaser3-rex-plugins/plugins/scale-plugin.js';
+import DialogPlugin from './plugins/dialog';
 
 
 const config = {
@@ -14,7 +15,7 @@ const config = {
     parent: 'phaser-example',
     width: 800,
     height: 600,
-    scene: Jump,
+    scene: Typewriter,
     backgroundColor: "#1d212d",
     physics: {
         default: 'arcade',
@@ -24,11 +25,13 @@ const config = {
         },
     },
     plugins: {
-        global: [{
-            key: 'rexScale',
-            plugin: ScalePlugin,
-            start: true
-        }]
+        global: [
+            {
+                key: 'rexScale',
+                plugin: ScalePlugin,
+                start: true
+            },
+        ]
     },
 };
 
