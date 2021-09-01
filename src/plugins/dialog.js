@@ -23,10 +23,10 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
 
         this.eventCounter = 0;
         this.visible = true;
-        this.text;
-        this.dialog;
-        this.graphics;
-        this.closeBtn;
+        // this.text;
+        // this.dialog;
+        // this.graphics;
+        // this.closeBtn;
 
         this._createWindow();
     }
@@ -113,7 +113,7 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
         this._setText(tempText);
         if (animate) {
             this.timedEvent = this.currentScene.time.addEvent({
-                delay: 150 - this.dialogSpeed * 30,
+                delay: 100 - this.dialogSpeed * 30,
                 callback: this._animateText,
                 callbackScope: this,
                 loop: true,
@@ -124,7 +124,11 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
     _animateText() {
         this.eventCounter++;
         this.text.setText(this.text.text + this.dialog[this.eventCounter - 1]);
-        if (this.eventCounter === this.dialog.length) {
+        console.log(this.text.getBounds().height);
+        if (
+            this.eventCounter === this.dialog.length
+            || this.text.getBounds().height >= this.windowHeight - 25
+        ) {
             this.timedEvent.remove();
         }
     }
@@ -140,6 +144,7 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
             y,
             text,
             style: {
+                font: "20px",
                 wordWrap: {
                     width: this._getGameWidth() - this.padding * 2 - 25,
                 },

@@ -12,7 +12,7 @@ export default class Typewriter extends Phaser.Scene {
         const dialogModalPlugin = this.plugins.install('dialogModal', DialogPlugin, true);
 
         dialogModalPlugin.run();
-        dialogModalPlugin.setText("Hello world", true);
+        dialogModalPlugin.setText("AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM. AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM. AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM. AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM. AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM.AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM.AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM.AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM.AETL studio chính thức ra mắt và đạt được doanh thu hàng nghìn tỉ đồng từ game đầu tay, LOCKED ROOM", true);
     }
 
     update() {}
