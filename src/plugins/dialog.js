@@ -23,6 +23,7 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
 
         this.eventCounter = 0;
         this.visible = true;
+        this.isRunningAnimate = false;
         // this.text;
         // this.dialog;
         // this.graphics;
@@ -103,11 +104,13 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
     }
 
     setText(text, animate) {
+        this.animate = animate;
         this.eventCounter = 0;
         this.dialog = text.split('');
 
         if (this.timedEvent) this.timedEvent.remove();
 
+        this.isRunningAnimate = animate;
         let tempText = animate ? '' : text;
 
         this._setText(tempText);
@@ -121,14 +124,41 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
         }
     }
 
+    continueText() {
+        if (!this.animate) return;
+
+        const isEndOfText = this.eventCounter === this.dialog.length;
+        if (isEndOfText) {
+            return this.toggleWindow();
+        }
+
+        this._setText("");
+        this.isRunningAnimate = true;
+        this.timedEvent = this.currentScene.time.addEvent({
+            delay: 100 - this.dialogSpeed * 30,
+            callback: this._animateText,
+            callbackScope: this,
+            loop: true,
+        });
+    }
+
     _animateText() {
+        if (this.eventCounter === this.dialog.length + 1) {
+            this.timedEvent.remove();
+            return;
+        }
         this.eventCounter++;
-        this.text.setText(this.text.text + this.dialog[this.eventCounter - 1]);
+        const nextCharacter = this.dialog[this.eventCounter - 1];
+        this.text.setText(this.text.text + nextCharacter);
         console.log(this.text.getBounds().height);
+
+        const isEndOfText = this.eventCounter === this.dialog.length;
+        const isReachDot = nextCharacter === ".";
+        const isMaxHeight = this.text.getBounds().height >= this.windowHeight - 25;
         if (
-            this.eventCounter === this.dialog.length
-            || this.text.getBounds().height >= this.windowHeight - 25
+            isEndOfText || isReachDot || isMaxHeight
         ) {
+            this.isRunningAnimate = false;
             this.timedEvent.remove();
         }
     }
@@ -150,6 +180,14 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
                 },
             },
         });
+    }
+
+    checkRun() {
+        return this.isRunningAnimate;
+    }
+
+    checkExist() {
+        return this.visible;
     }
 
     _createWindow() {
