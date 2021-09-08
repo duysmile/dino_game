@@ -15,7 +15,7 @@ const config = {
     parent: 'phaser-example',
     width: 800,
     height: 600,
-    scene: Typewriter,
+    scene: BagScene,
     backgroundColor: "#1d212d",
     physics: {
         default: 'arcade',
@@ -23,15 +23,6 @@ const config = {
             gravity: { y: 1000 },
             debug: false,
         },
-    },
-    plugins: {
-        global: [
-            {
-                key: 'rexScale',
-                plugin: ScalePlugin,
-                start: true
-            },
-        ]
     },
 };
 
