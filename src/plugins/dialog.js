@@ -294,7 +294,7 @@ export default class DialogPlugin extends Phaser.Plugins.BasePlugin {
         }
 
         if (!this.isShowChoice) {
-            return
+            return;
         }
 
         if (keys.enter.isDown) {
