@@ -2,7 +2,14 @@ import Phaser from "phaser";
 
 const UP = -1;
 const DOWN = 1;
+const LEFT = -1;
+const RIGHT = 1;
 const MAX_SIZE = 3;
+
+export const ACTION = {
+    COMBINE: 'Combine',
+    USE: 'Use',
+};
 
 export default class BagPlugin extends Phaser.Plugins.BasePlugin {
     constructor(pluginManager) {
@@ -29,13 +36,17 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
         this.height = 200;
         this.scale = opts.scale || 0.1;
         this.alpha = opts.alpha || 0.5;
+        this.alphaItem = opts.alphaItem || 0.5;
         this.padding = opts.padding || 50;
         this.lines = [];
 
         this.isOpened = false;
         this.items = [];
         this.itemObjects = [];
+        this.actionObjects = [];
         this.chooseItem = 0;
+        this.chooseAction = 0;
+        this.enteredItem = false;
 
         this.bag = this._createBag();
         this._createEvent();
@@ -68,6 +79,12 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
             if (this.currentImage) {
                 this._clearObject(this.currentImage);
             }
+            if (this.actionObjects.length > 0) {
+                this.actionObjects.forEach(action => this._clearObject(action));
+            }
+
+            this.actionObjects = [];
+            this.itemObjects = [];
         }
 
         if (this.graphics) this.graphics.visible = this.isOpened;
@@ -218,7 +235,7 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
         this._createWindow(dimensions);
         for (let i = 0; i < this.items.length; i++) {
             const item = this.items[i];
-            this.itemObjects = this.itemObjects.concat(this._displayItem(dimensions, item, i));
+            this.itemObjects.push(this._displayItem(dimensions, item, i));
             if (i === 0) {
                 this._initializePointer(
                     dimensions.x + this.padding / 2 - this.spaceSize,
@@ -227,21 +244,21 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
             }
         }
 
-        this._setChooseItem(0);
+        this._setChooseItem(this.chooseItem);
     }
 
     _initializePointer(x, y) {
-		if (this.choicePointer != null) {
-			this.choicePointer.destroy();
-		}
-		this.choicePointer = this.currentScene.add.polygon(x, y, [0, 0, 0, 15, 8, 8], 0xffffff);
-	}
+        if (this.choicePointer != null) {
+            this.choicePointer.destroy();
+        }
+        this.choicePointer = this.currentScene.add.polygon(x, y, [0, 0, 0, 15, 8, 8], 0xffffff);
+    }
 
     _displayItem(dimensions, item, index) {
         const x = dimensions.x;
         const y = dimensions.y;
 
-        return this.currentScene.make.text({
+        const text = this.currentScene.make.text({
             x: x + this.padding / 1.5,
             y: y + this.padding + index * (14 + this.padding / 2),
             text: item.name,
@@ -249,13 +266,16 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
                 font: "14px",
             },
         });
+
+        text.alpha = this.alphaItem;
+
+        return text;
     }
 
     _setChooseItem(direction) {
         if (this.currentImage) {
             this._clearObject(this.currentImage);
         }
-        const dimensions = this._calculateWindowDimensions(this.width, this.height);
         const oldX = this.choicePointer.x;
         const oldY = this.choicePointer.y;
 
@@ -264,11 +284,74 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
 
         this.choicePointer.setPosition(oldX, oldY + step);
 
+        const item = this.items[this.chooseItem];
+        const itemObj = this.itemObjects[this.chooseItem];
+        itemObj.alpha = 1;
+        this._showInfoItem(item);
+    }
+
+    _showInfoItem(item) {
+        if (this.actionObjects.length > 0) {
+            this.actionObjects.forEach(action => this._clearObject(action));
+        }
+
+        const { x, y, rectHeight, rectWidth } = this._calculateWindowDimensions(this.width, this.height);
+
         this.currentImage = this.currentScene.add.image(
-            dimensions.x + dimensions.rectWidth * 1.5 / 2,
-            dimensions.y + dimensions.rectHeight / 2,
-            this.items[this.chooseItem].image,
+            x + rectWidth * 1.5 / 2,
+            y + rectHeight / 2,
+            item.image,
         );
+
+        this.actionObjects = item.actions.map((action, index) => {
+            const text = this.currentScene.make.text({
+                x: x + this.padding / 1.5 + index * rectWidth / 2,
+                y: y + rectHeight - this.padding / 2,
+                text: action.name,
+                style: {
+                    font: "14px",
+                },
+            });
+            text.alpha = this.alphaItem;
+            return text;
+        });
+    }
+
+    _setChooseAction(direction) {
+        const dimensions = this._calculateWindowDimensions(this.width, this.height);
+        const oldX = this.choicePointer.x;
+        const oldY = this.choicePointer.y;
+
+        this.actionObjects[this.chooseAction].alpha = 1;
+        this.choicePointer.setPosition(
+            oldX + direction * dimensions.rectWidth / 2,
+            oldY,
+        );
+    }
+
+    _movePointerToBottom() {
+        const {
+            x,
+            y,
+            rectHeight: height,
+        } = this._calculateWindowDimensions(this.width, this.height);
+
+        this.choicePointer.setPosition(
+            x + this.padding / 2 - this.spaceSize,
+            y + height - 14 - this.spaceSize / 2,
+        );
+    }
+
+    _movePointerToList(index) {
+        const dimensions = this._calculateWindowDimensions(this.width, this.height);
+        const x = dimensions.x + this.padding / 2 - this.spaceSize;
+        let y = dimensions.y + this.padding + this.spaceSize;
+
+        let step = index * 14;
+        step += index * this.padding / 2;
+        y += step
+
+        this.choicePointer.setPosition(x, y);
     }
 
     checkIsOpen() {
@@ -281,8 +364,16 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
         {
             name,
             image,
-            canCombine,
-            activeFunc,
+            actions: [
+                {
+                    name: COMBINE,
+                    handler: () => {}
+                },
+                {
+                    name: USE,
+                    handler: () => {}
+                },
+            ]
         }
         */
         if (this.items.length === MAX_SIZE) {
@@ -297,17 +388,57 @@ export default class BagPlugin extends Phaser.Plugins.BasePlugin {
         }
 
         if (
-            Phaser.Input.Keyboard.JustDown(keys.down)
-            || Phaser.Input.Keyboard.JustDown(keys.up)
+            !this.enteredItem
+            && (
+                Phaser.Input.Keyboard.JustDown(keys.down)
+                || Phaser.Input.Keyboard.JustDown(keys.up)
+            )
         ) {
             let direction = keys.down.isDown ? DOWN : UP;
             const temp = this.chooseItem + direction;
             if (temp < 0 || temp > this.items.length - 1) {
                 return;
             }
+            this.itemObjects[this.chooseItem].alpha = this.alphaItem;
             this.chooseItem = temp;
 
             this._setChooseItem(direction);
+        }
+
+        if (
+            this.enteredItem
+            && (
+                Phaser.Input.Keyboard.JustDown(keys.left)
+                || Phaser.Input.Keyboard.JustDown(keys.right)
+            )
+        ) {
+            let direction = keys.left.isDown ? LEFT : RIGHT;
+            const temp = this.chooseAction + direction;
+            const item = this.items[this.chooseItem];
+            if (temp < 0 || temp > item.actions.length - 1) {
+                return;
+            }
+            this.actionObjects[this.chooseAction].alpha = this.alphaItem;
+            this.chooseAction = temp;
+
+            this._setChooseAction(direction);
+        }
+
+        if (this.enteredItem && Phaser.Input.Keyboard.JustDown(keys.esc)) {
+            this.enteredItem = !this.enteredItem;
+            this._movePointerToList(this.chooseItem);
+            this.actionObjects[this.chooseAction].alpha = this.alphaItem;
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(keys.enter)) {
+            if (this.enteredItem) {
+                this._movePointerToList(this.chooseItem);
+            } else {
+                this._movePointerToBottom();
+                this.chooseAction = 0;
+                this._setChooseAction(0);
+            }
+            this.enteredItem = !this.enteredItem;
         }
     }
 }

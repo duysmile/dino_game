@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import BagPlugin from "./plugins/bag";
+import { ACTION } from "./plugins/bag";
 import Bag from "./assets/bag.png";
 import Key from "./assets/key.png";
 import Key2 from "./assets/key2.png";
@@ -21,35 +22,63 @@ export default class BagScene extends Phaser.Scene {
         this.bagPlugin.addItem({
             name: "Key",
             image: "key",
-            canCombine: false,
-            activeFunc: () => {
-                console.log('Run');
-            },
+            actions: [
+                {
+                    name: ACTION.COMBINE,
+                    handler: () => {
+                        console.log('Combine');
+                    },
+                },
+                {
+                    name: ACTION.USE,
+                    handler: () => {
+                        console.log('Run');
+                    },
+                }
+            ],
+        });
+        this.bagPlugin.addItem({
+            name: "Another Key",
+            image: "key2",
+            actions: [
+                {
+                    name: ACTION.COMBINE,
+                    handler: () => {
+                        console.log('Combine');
+                    },
+                },
+                {
+                    name: ACTION.USE,
+                    handler: () => {
+                        console.log('Run');
+                    },
+                }
+            ],
         });
         this.bagPlugin.addItem({
             name: "Another Key",
             image: "key2",
             canCombine: false,
-            activeFunc: () => {
-                console.log('Run');
-            },
-        });
-        this.bagPlugin.addItem({
-            name: "Another Key",
-            image: "key2",
-            canCombine: false,
-            activeFunc: () => {
-                console.log('Run');
-            },
+            actions: [
+                {
+                    name: ACTION.USE,
+                    handler: () => {
+                        console.log('Run');
+                    },
+                }
+            ],
         });
 
-        const { X, Z, UP, DOWN, ENTER } = Phaser.Input.Keyboard.KeyCodes;
+        const { X, Z, LEFT, RIGHT, UP, DOWN, ENTER, ESC } = Phaser.Input.Keyboard.KeyCodes;
         this.keys = this.input.keyboard.addKeys({
             x: X,
             z: Z,
             up: UP,
             down: DOWN,
+            left: LEFT,
+            right: RIGHT,
             enter: ENTER,
+            esc: ESC,
         });
     }
 
