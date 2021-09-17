@@ -20,13 +20,15 @@ export default class BagScene extends Phaser.Scene {
     create() {
         this.bagPlugin.run();
         this.bagPlugin.addItem({
+            id: 1,
             name: "Key",
             image: "key",
             actions: [
                 {
                     name: ACTION.COMBINE,
-                    handler: () => {
-                        console.log('Combine');
+                    targetItem: {name: 'key main', image: 'key'},
+                    targetHandler: () => {
+                        console.log("RUN");
                     },
                 },
                 {
@@ -38,13 +40,15 @@ export default class BagScene extends Phaser.Scene {
             ],
         });
         this.bagPlugin.addItem({
+            id: 1,
             name: "Another Key",
             image: "key2",
             actions: [
                 {
                     name: ACTION.COMBINE,
-                    handler: () => {
-                        console.log('Combine');
+                    targetItem: {name: 'key main', image: 'key'},
+                    targetHandler: () => {
+                        console.log("RUN");
                     },
                 },
                 {
@@ -56,6 +60,7 @@ export default class BagScene extends Phaser.Scene {
             ],
         });
         this.bagPlugin.addItem({
+            id: 2,
             name: "Another Key",
             image: "key2",
             canCombine: false,
